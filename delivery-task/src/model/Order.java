@@ -3,6 +3,7 @@ package model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import delivery.DeliveryMethod;
 
 public class Order {
   private final int number;
@@ -34,6 +35,29 @@ public class Order {
     items.add(item);
   }
 
+  public void setDeliveryMethod(DeliveryMethod method) {
+    if (method == null) {
+      throw new IllegalArgumentException("Способ доставки не выбран");
+    }
+    if (status != OrderStatus.NEW) {
+      throw new IllegalStateException(
+          "Менять способ доставки можно только в новом заказе, сейчас статус: " + status);
+    }
+    this.deliveryMethod = method;
+  }
+
+  public DeliveryMethod getDeliveryMethod() {
+    return deliveryMethod;
+  }
+
+  public double getDeliveryCost() {
+    return deliveryMethod == null ? 0 : deliveryMethod.calculateCost(this);
+  }
+
+  public double getTotalCost() {
+    return getItemsTotal() + getDeliveryCost();
+  }
+
   public double getItemsTotal() {
     double sum = 0;
     for (OrderItem item : items) {
@@ -62,9 +86,11 @@ public class Order {
     return status;
   }
 
+  private DeliveryMethod deliveryMethod;
+
   @Override
   public String toString() {
     return "Заказ №" + number + ", клиент: " + customer + ", статус: " + status
-        + ", сумма: " + getItemsTotal();
+        + ", сумма: " + getTotalCost();
   }
 }
