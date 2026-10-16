@@ -20,23 +20,24 @@ public class ConsoleUi {
 
   public void run() {
     boolean running = true;
+
     while (running) {
       printMenu();
-      String choice = scanner.nextLine().trim();
-      try {
-        switch (choice) {
-          case "1" -> createOrder();
-          case "2" -> showOrders();
-          case "3" -> chooseDelivery();
-          case "4" -> assignCourier();
-          case "5" -> changeStatus();
-          case "0" -> running = false;
-          default -> System.out.println("Неизвестная команда, введите число от 0 до 5");
+        String choice = scanner.nextLine().trim();
+        try {
+          switch (choice) {
+            case "1" -> createOrder();
+            case "2" -> showOrders();
+            case "3" -> chooseDelivery();
+            case "4" -> assignCourier();
+            case "5" -> changeStatus();
+            case "0" -> running = false;
+            default -> System.out.println("Неизвестная команда, введите число от 0 до 5");
+          }
+        } catch (IllegalArgumentException | IllegalStateException e) {
+          System.out.println("Ошибка: " + e.getMessage());
         }
       }
-    } catch (IllegalArgumentException | IllegalStateException e) {
-      System.out.println("Ошибка: " + e.getMessage());
-    }
     System.out.println("Работа завершена");
   }
 
