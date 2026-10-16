@@ -36,16 +36,16 @@ public class Order {
   }
 
   public void setDeliveryMethod(DeliveryMethod method) {
-    if (courier != null && !method.requiresCourier()) {
-      courier.markFree();
-      courier = null;
-    }
     if (method == null) {
       throw new IllegalArgumentException("Способ доставки не выбран");
     }
     if (status != OrderStatus.NEW) {
       throw new IllegalStateException(
           "Менять способ доставки можно только в новом заказе, сейчас статус: " + status);
+    }
+    if (courier != null && !method.requiresCourier()) {
+      courier.markFree();
+      courier = null;
     }
     this.deliveryMethod = method;
   }
@@ -69,6 +69,35 @@ public class Order {
     }
     courier.markBusy();
     this.courier = courier;
+  }
+
+  public void changeStatus(OrderStatus next) {
+    if (next == null) {
+      throw new IllegalArgumentException("Статус не указан");
+    }
+    if (!status.canTransitionTo(next)) {
+      throw new IllegalStateException(
+          "Переход из статуса \"" + status + "\" в \"" + next + "\" недопустим");
+    }
+    if (next == OrderStatus.PROCESSING || next == OrderStatus.SHIPPED) {
+      checkReadyForProcessing();
+    }
+    if (next == OrderStatus.SHIPPED && deliveryMethod.requiresCourier() && courier == null) {
+      throw new IllegalStateException("Нельзя отправить заказ без назначенного курьера");
+    }
+    status = next;
+    if ((next == OrderStatus.DELIVERED || next == OrderStatus.CANCELLED) && courier != null) {
+      courier.markFree();
+    }
+  }
+
+  private void checkReadyForProcessing() {
+    if (items.isEmpty()) {
+      throw new IllegalStateException("В заказе нет позиций");
+    }
+    if (deliveryMethod == null) {
+      throw new IllegalStateException("Не выбран способ доставки");
+    }
   }
 
   public Courier getCourier() {
