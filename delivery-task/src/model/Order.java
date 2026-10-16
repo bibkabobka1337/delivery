@@ -36,6 +36,10 @@ public class Order {
   }
 
   public void setDeliveryMethod(DeliveryMethod method) {
+    if (courier != null && !method.requiresCourier()) {
+      courier.markFree();
+      courier = null;
+    }
     if (method == null) {
       throw new IllegalArgumentException("Способ доставки не выбран");
     }
@@ -44,6 +48,31 @@ public class Order {
           "Менять способ доставки можно только в новом заказе, сейчас статус: " + status);
     }
     this.deliveryMethod = method;
+  }
+
+  public void assignCourier(Courier courier) {
+    if (courier == null) {
+      throw new IllegalArgumentException("Курьер не указан");
+    }
+    if (deliveryMethod == null) {
+      throw new IllegalStateException("Сначала выберите способ доставки");
+    }
+    if (!deliveryMethod.requiresCourier()) {
+      throw new IllegalStateException(
+          "Для способа \"" + deliveryMethod.getName() + "\" курьер не нужен");
+    }
+    if (status == OrderStatus.DELIVERED || status == OrderStatus.CANCELLED) {
+      throw new IllegalStateException("Нельзя назначить курьера в заказ со статусом: " + status);
+    }
+    if (this.courier != null) {
+      throw new IllegalStateException("Курьер уже назначен: " + this.courier.getName());
+    }
+    courier.markBusy();
+    this.courier = courier;
+  }
+
+  public Courier getCourier() {
+    return courier;
   }
 
   public DeliveryMethod getDeliveryMethod() {
@@ -87,6 +116,8 @@ public class Order {
   }
 
   private DeliveryMethod deliveryMethod;
+
+  private Courier courier;
 
   @Override
   public String toString() {
